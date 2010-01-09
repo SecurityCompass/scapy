@@ -988,7 +988,6 @@ class TracerouteResult(SndRcvList):
 
         visual.scene = visual.display()
         #visual.scene.exit_on_close(0)
-        #20131215, syakesaba "latest visual have no method exit_on_close"
         start = visual.box()
         rings={}
         tr3d = {}

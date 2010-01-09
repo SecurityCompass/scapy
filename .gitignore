@@ -5,6 +5,8 @@
 
 build
 
+*.hg*
+
 # Packages
 *.egg
 *.egg-info

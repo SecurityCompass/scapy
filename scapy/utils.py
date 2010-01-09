@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore","tempnam",RuntimeWarning, __name__)
 
 from config import conf
 from data import MTU
-from error import log_runtime,log_loading,log_interactive
+from error import log_runtime,log_loading,log_interactive, Scapy_Exception
 from base_classes import BasePacketList
 
 WINDOWS=sys.platform.startswith("win32")
@@ -65,6 +65,23 @@ def lhex(x):
         return x
 
 @conf.commands.register
+def bitmapdump(x, s=0, c=True, d=os.linesep):
+    """Draw psudo bitmap to xterm-256color"""
+    x=str(x)
+    l = len(x)
+    p = sys.stdout.write
+    for i,ch in enumerate(x):
+        p("\x1b[48;5;%2dm" % ord(ch))
+        if c:
+            p(ord(ch) > 0x1F and ord(ch) < 0x7F and ch or ".")
+        else:
+            p(" ")
+        p("\x1b[0m")
+        if i and s and i%s == 0:
+            print ""
+    p(d)
+
+@conf.commands.register
 def hexdump(x):
     x=str(x)
     l = len(x)
@@ -81,23 +98,6 @@ def hexdump(x):
         print " ",
         print sane_color(x[i:i+16])
         i += 16
-
-@conf.commands.register
-def bitmapdump(x, s=0, c=True, d=os.linesep):
-    """Draw psudo bitmap to xterm-256color"""
-    x=str(x)
-    l = len(x)
-    p = sys.stdout.write
-    for i,ch in enumerate(x):
-        p("\x1b[48;5;%2dm" % ord(ch))
-        if c:
-            p(ord(ch) > 0x1F and ord(ch) < 0x7F and ch or ".")
-        else:
-            p(" ")
-        p("\x1b[0m")
-        if i and s and i%s == 0:
-            print ""
-    p(d)
 
 @conf.commands.register
 def linehexdump(x, onlyasc=0, onlyhex=0):
@@ -494,6 +494,7 @@ count: read only <count> packets"""
     return PcapReader(filename).read_all(count=count)
 
 
+
 class RawPcapReader:
     """A stateful pcap reader. Each packet is returned as a string"""
 
@@ -526,6 +527,8 @@ class RawPcapReader:
         vermaj,vermin,tz,sig,snaplen,linktype = struct.unpack(self.endian+"HHIIII",hdr)
 
         self.linktype = linktype
+
+
 
     def __iter__(self):
         return self
@@ -584,7 +587,12 @@ class RawPcapReader:
     def close(self):
         return self.f.close()
 
-    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tracback):
+        pass
+
 
 class PcapReader(RawPcapReader):
     def __init__(self, filename):
@@ -697,9 +705,16 @@ class RawPcapWriter:
 
     def flush(self):
         return self.f.flush()
+
     def close(self):
         return self.f.close()
-                
+
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, tracback):
+        self.flush()
+
+
 class PcapWriter(RawPcapWriter):
     def _write_header(self, pkt):
         if self.linktype == None:

@@ -44,22 +44,22 @@ def construct_source_candidate_set(addr, plen, laddr, loname):
 
     cset = []
     if in6_isgladdr(addr) or in6_isuladdr(addr):
-	cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
+        cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
     elif in6_islladdr(addr):
-	cset = filter(lambda x: x[1] == IPV6_ADDR_LINKLOCAL, laddr)
+        cset = filter(lambda x: x[1] == IPV6_ADDR_LINKLOCAL, laddr)
     elif in6_issladdr(addr):
-	cset = filter(lambda x: x[1] == IPV6_ADDR_SITELOCAL, laddr)
+        cset = filter(lambda x: x[1] == IPV6_ADDR_SITELOCAL, laddr)
     elif in6_ismaddr(addr):
-	if in6_ismnladdr(addr):
-	    cset = [('::1', 16, loname)]
-	elif in6_ismgladdr(addr):
-	    cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
-	elif in6_ismlladdr(addr):
-	    cset = filter(lambda x: x[1] == IPV6_ADDR_LINKLOCAL, laddr)
-	elif in6_ismsladdr(addr):
-	    cset = filter(lambda x: x[1] == IPV6_ADDR_SITELOCAL, laddr)
+        if in6_ismnladdr(addr):
+            cset = [('::1', 16, loname)]
+        elif in6_ismgladdr(addr):
+            cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
+        elif in6_ismlladdr(addr):
+            cset = filter(lambda x: x[1] == IPV6_ADDR_LINKLOCAL, laddr)
+        elif in6_ismsladdr(addr):
+            cset = filter(lambda x: x[1] == IPV6_ADDR_SITELOCAL, laddr)
     elif addr == '::' and plen == 0:
-	cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
+        cset = filter(lambda x: x[1] == IPV6_ADDR_GLOBAL, laddr)
     cset = map(lambda x: x[0], cset)
     cset.sort(cmp=cset_sort) # Sort with global addresses first
     return cset            
@@ -138,8 +138,8 @@ def get_source_addr_from_candidate_set(dst, candidate_set):
         return 0
     
     if not candidate_set:
-	# Should not happen
-	return None
+        # Should not happen
+        return None
 
     candidate_set.sort(cmp=rfc3484_cmp, reverse=True)
     
@@ -535,9 +535,10 @@ def in6_iseui64(x):
 def in6_isanycast(x): # RFC 2526
     if in6_iseui64(x):
         s = '::fdff:ffff:ffff:ff80'
-        x = in6_and(x, inet_pton(socket.AF_INET6, '::ffff:ffff:ffff:ff80'))
-        x = in6_and(x, inet_pton(socket.AF_INET6, s)) 
-        return x == inet_pton(socket.AF_INET6, s)
+        packed_x = inet_pton(socket.AF_INET6, x)
+        packed_s = inet_pton(socket.AF_INET6, s)
+        x_and_s = in6_and(packed_x, packed_s) 
+        return x_and_s == packed_s
     else:
         # not EUI-64 
         #|              n bits             |    121-n bits    |   7 bits   |

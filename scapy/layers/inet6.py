@@ -109,7 +109,10 @@ def getmacbyip6(ip6, chainCC=0):
     res = neighsol(ip6, a, iff, chainCC=chainCC)
 
     if res is not None:
-        mac = res.src
+        if ICMPv6NDOptDstLLAddr in res:
+	  mac = res[ICMPv6NDOptDstLLAddr].lladdr
+	else:
+	  mac = res.src
         conf.netcache.in6_neighbor[ip6] = mac
         return mac
 
@@ -328,12 +331,14 @@ class IP6ListField(StrField):
 class _IPv6GuessPayload:        
     name = "Dummy class that implements guess_payload_class() for IPv6"
     def default_payload_class(self,p):
-        if self.nh == 58 and len(p) > 2:
+        if self.nh == 58: # ICMPv6
             t = ord(p[0])
-            if t == 139 or t == 140: # Node Info Query 
+            if len(p) > 2 and t == 139 or t == 140: # Node Info Query 
                 return _niquery_guesser(p)
-            return get_cls(icmp6typescls.get(t,"Raw"), "Raw")
-        elif self.nh == 135 and len(p) > 3:
+            if len(p) >= icmp6typesminhdrlen.get(t, sys.maxint): # Other ICMPv6 messages
+                return get_cls(icmp6typescls.get(t,"Raw"), "Raw")
+            return Raw
+        elif self.nh == 135 and len(p) > 3: # Mobile IPv6
             return _mip6_mhtype2cls.get(ord(p[2]), MIP6MH_Generic)
         else:
             return get_cls(ipv6nhcls.get(self.nh,"Raw"), "Raw")
@@ -955,15 +960,22 @@ def fragment6(pkt, fragSize):
     """
 
     pkt = pkt.copy()
-    s = str(pkt) # for instantiation to get upper layer checksum right
-
-    if len(s) <= fragSize:
-        return [pkt]
 
     if not IPv6ExtHdrFragment in pkt:
         # TODO : automatically add a fragment before upper Layer
         #        at the moment, we do nothing and return initial packet
         #        as single element of a list
+        return [pkt]
+
+    # If the payload is bigger than 65535, a Jumbo payload must be used, as
+    # an IPv6 packet can't be bigger than 65535 bytes. 
+    if len(str(pkt[IPv6ExtHdrFragment])) > 65535:
+      warning("An IPv6 packet can'be bigger than 65535, please use a Jumbo payload.")
+      return []
+    
+    s = str(pkt) # for instantiation to get upper layer checksum right
+
+    if len(s) <= fragSize:
         return [pkt]
 
     # Fragmentable part : fake IPv6 for Fragmentable part length computation
@@ -1108,6 +1120,33 @@ icmp6typescls = {    1: "ICMPv6DestUnreach",
                    153: "ICMPv6MRD_Termination",
                    }
 
+icmp6typesminhdrlen = {    1: 8,
+                           2: 8,
+                           3: 8,
+                           4: 8,
+                         128: 8,
+                         129: 8,
+                         130: 24,
+                         131: 24,
+                         132: 24,
+                         133: 8,
+                         134: 16,
+                         135: 24,
+                         136: 24,
+                         137: 40,
+                         #139:
+                         #140
+                         141: 8,
+                         142: 8,
+                         144: 8,
+                         145: 8,
+                         146: 8,
+                         147: 8,
+                         151: 8,
+                         152: 4,
+                         153: 4
+                   }
+
 icmp6types = { 1 : "Destination unreachable",  
                2 : "Packet too big", 
                3 : "Time exceeded",
@@ -1204,8 +1243,8 @@ class ICMPv6PacketTooBig(_ICMPv6Error):
 class ICMPv6TimeExceeded(_ICMPv6Error):
     name = "ICMPv6 Time Exceeded"
     fields_desc = [ ByteEnumField("type",3, icmp6types),
-                    ByteField("code",{ 0: "hop limit exceeded in transit",
-                                       1: "fragment reassembly time exceeded"}),
+                    ByteEnumField("code",0, { 0: "hop limit exceeded in transit",
+                                               1: "fragment reassembly time exceeded"}),
                     XShortField("cksum", None),
                     XIntField("unused",0x00000000)]
 
@@ -1259,7 +1298,7 @@ class _ICMPv6ML(_ICMPv6):
                     XShortField("cksum", None),
                     ShortField("mrd", 0),
                     ShortField("reserved", 0),
-                    IP6Field("mladdr",None)]
+                    IP6Field("mladdr","::")]
 
 # general queries are sent to the link-scope all-nodes multicast
 # address ff02::1, with a multicast address field of 0 and a MRD of
@@ -1684,10 +1723,7 @@ class ICMPv6ND_NS(_ICMPv6NDGuessPayload, _ICMPv6, Packet):
     fields_desc = [ ByteEnumField("type",135, icmp6types),
                     ByteField("code",0),
                     XShortField("cksum", None),
-                    BitField("R",0,1),
-                    BitField("S",0,1),
-                    BitField("O",0,1),
-                    XBitField("res",0,29),
+                    IntField("res", 0),
                     IP6Field("tgt","::") ]
     overload_fields = {IPv6: { "nh": 58, "dst": "ff02::1", "hlim": 255 }}
 
@@ -1697,11 +1733,23 @@ class ICMPv6ND_NS(_ICMPv6NDGuessPayload, _ICMPv6, Packet):
     def hashret(self):
         return self.tgt+self.payload.hashret() 
 
-class ICMPv6ND_NA(ICMPv6ND_NS):
+class ICMPv6ND_NA(_ICMPv6NDGuessPayload, _ICMPv6, Packet):
     name = "ICMPv6 Neighbor Discovery - Neighbor Advertisement"
-    type = 136
-    R    = 1
-    O    = 1
+    fields_desc = [ ByteEnumField("type",136, icmp6types),
+                    ByteField("code",0),
+                    XShortField("cksum", None),
+                    BitField("R",1,1),
+                    BitField("S",0,1),
+                    BitField("O",1,1),
+                    XBitField("res",0,29),
+                    IP6Field("tgt","::") ]
+    overload_fields = {IPv6: { "nh": 58, "dst": "ff02::1", "hlim": 255 }}
+
+    def mysummary(self):
+        return self.sprintf("%name% (tgt: %tgt%)")
+
+    def hashret(self):
+        return self.tgt+self.payload.hashret() 
 
     def answers(self, other):
         return isinstance(other, ICMPv6ND_NS) and self.tgt == other.tgt
