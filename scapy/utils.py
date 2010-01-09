@@ -489,8 +489,8 @@ class RawPcapReader:
             f = StringIO(filename) # grant filename as raw string buffer
             f.fileno = lambda:0
             self.isString = True
-        first2bytes = f.read(2)
-        f.seek(0)
+        #first2bytes = f.read(2)
+        #f.seek(0)
         #if first2bytes == "\037\213":
         #    self.f = gzip.GZipFile(fileobj=f, mode="rb")
         #else:
