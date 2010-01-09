@@ -10,6 +10,7 @@ General utility functions.
 import os,sys,socket,types
 import random,time
 import gzip,zlib,cPickle
+from StringIO import StringIO
 import re,struct,array
 import subprocess
 
@@ -476,18 +477,26 @@ count: read only <count> packets"""
     return PcapReader(filename).read_all(count=count)
 
 
-
 class RawPcapReader:
     """A stateful pcap reader. Each packet is returned as a string"""
 
     def __init__(self, filename):
         self.filename = filename
         try:
-            self.f = gzip.open(filename,"rb")
-            magic = self.f.read(4)
-        except IOError:
-            self.f = open(filename,"rb")
-            magic = self.f.read(4)
+            f = open(filename, "rb")
+            self.isString = False
+        except:
+            f = StringIO(filename) # grant filename as raw string buffer
+            f.fileno = lambda:0
+            self.isString = True
+        first2bytes = f.read(2)
+        f.seek(0)
+        #if first2bytes == "\037\213":
+        #    self.f = gzip.GZipFile(fileobj=f, mode="rb")
+        #else:
+        #    self.f = f
+        self.f = f
+        magic = self.f.read(4)
         if magic == "\xa1\xb2\xc3\xd4": #big endian
             self.endian = ">"
         elif  magic == "\xd4\xc3\xb2\xa1": #little endian
@@ -500,8 +509,6 @@ class RawPcapReader:
         vermaj,vermin,tz,sig,snaplen,linktype = struct.unpack(self.endian+"HHIIII",hdr)
 
         self.linktype = linktype
-
-
 
     def __iter__(self):
         return self
