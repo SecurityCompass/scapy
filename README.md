@@ -1,7 +1,9 @@
 scapy
 =====
-
-clone of Scapy official repository http://hg.secdev.org/scapy  version=2.2.0
+Scapyは小規模のパケットを解析・構築するためのツールです。  
+このリポジトリは、Scapyの公式リポジトリ<http://hg.secdev.org/scapy>から  
+最新(2.2.0-dev)のものを持ってきて、sya-keが個人的に修正したり、  
+つけてみたい機能を勝手に追加したものです。
 
 CangeLog
 =====
@@ -28,3 +30,6 @@ Welcome to Scapy (2.2.0-dev)
 $ sudo rm -rf /usr/local/lib/python2.6/dist-packages/scapy*
 ```
 
+License
+=====
+GPL version 2 (See "LICENSE")
