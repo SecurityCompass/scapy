@@ -13,18 +13,18 @@ bitmapdumpを追加。色は256フルで使っているが、間引きたいと�
 Install
 =====
 ```sh
-$python setup.py install
+$ python setup.py install
 ```
 
 Uninstall
 =====
 ```sh
-$rm -f `which scapy`
-$rm -f `which UTscapy`
-$scapy
+$ rm -f `which scapy`
+$ rm -f `which UTscapy`
+$ scapy
 Welcome to Scapy (2.2.0-dev)
 >>> scapy
 <module 'scapy' from '/usr/local/lib/python2.6/dist-packages/scapy/__init__.pyc'>
-rm -rf /usr/local/lib/python2.6/dist-packages/scapy*
+$ rm -rf /usr/local/lib/python2.6/dist-packages/scapy*
 ```
 
