@@ -34,3 +34,7 @@ $ sudo find /usr/local/share/ -name "scapy*" | xargs rm
 License
 =====
 GPL version 2 (See "LICENSE")
+
+Author
+=====
+ppl in <http://bb.secdev.org/scapy>
