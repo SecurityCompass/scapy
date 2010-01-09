@@ -89,14 +89,14 @@ def bitmapdump(x, s=0, c=True, d=os.linesep):
     l = len(x)
     p = sys.stdout.write
     for i,ch in enumerate(x):
-        if i and s and i%s == 0:
-            print ""
         p("\x1b[48;5;%2dm" % ord(ch))
         if c:
             p(ord(ch) > 0x1F and ord(ch) < 0x7F and ch or ".")
         else:
             p(" ")
         p("\x1b[0m")
+        if i and s and i%s == 0:
+            print ""
     p(d)
 
 @conf.commands.register
