@@ -83,13 +83,13 @@ def hexdump(x):
         i += 16
 
 @conf.commands.register
-def bitmapdump(x, s=0, c=True):
+def bitmapdump(x, s=0, c=True, d=os.linesep):
     """Draw psudo bitmap to xterm-256color"""
     x=str(x)
     l = len(x)
     p = sys.stdout.write
-    for i,ch in enumerate(x,1):
-        if s and i%s == 0:
+    for i,ch in enumerate(x):
+        if i and s and i%s == 0:
             print ""
         p("\x1b[48;5;%2dm" % ord(ch))
         if c:
@@ -97,7 +97,7 @@ def bitmapdump(x, s=0, c=True):
         else:
             p(" ")
         p("\x1b[0m")
-    print ""
+    p(d)
 
 @conf.commands.register
 def linehexdump(x, onlyasc=0, onlyhex=0):
