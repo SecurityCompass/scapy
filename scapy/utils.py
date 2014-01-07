@@ -10,7 +10,10 @@ General utility functions.
 import os,sys,socket,types
 import random,time
 import gzip,zlib,cPickle
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import re,struct,array
 import subprocess
 
@@ -505,7 +508,6 @@ class RawPcapReader:
             self.isString = False
         except:
             f = StringIO(filename) # grant filename as raw string buffer
-            f.fileno = lambda:0
             self.isString = True
         #first2bytes = f.read(2)
         #f.seek(0)
@@ -582,6 +584,8 @@ class RawPcapReader:
         return self.read_packet(size)[0]
 
     def fileno(self):
+        if self.isString:
+            return 0
         return self.f.fileno()
 
     def close(self):
@@ -653,6 +657,8 @@ class RawPcapWriter:
         self.f = [open,gzip.open][gz](filename,append and "ab" or "wb", gz and 9 or bufsz)
         
     def fileno(self):
+        if self.isString:
+            return 0
         return self.f.fileno()
 
     def _write_header(self, pkt):
