@@ -1,49 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from scapy.all import config
-from scapy.all import PacketList
 from scapy.all import IP,TCP,IPv6,Padding
 from scapy.all import TCP_SERVICES,UDP_SERVICES
 TCP_PORTS={TCP_SERVICES[service]:service for service in TCP_SERVICES.keys()}
 UDP_PORTS={UDP_SERVICES[service]:service for service in UDP_SERVICES.keys()}
 import socket
-import os,sys,copy
-
-def _bitmapdump(self, lfilter=None, banner=True, slice_bytes=0, charcode=True, delimiter=os.linesep):
-    """Same as nsummary(), except that packets are also bitmapdumped
-   lfilter: a truth function that decides whether a packet must be displayed
-   banner: whether a packet banner must be displayed or not"""
-    for i in range(len(self.res)):
-        p = self._elt2pkt(self.res[i])
-        if lfilter is not None and not lfilter(p):
-            continue
-        if banner:
-            print "%s %s %s" % (conf.color_theme.id(i,fmt="%04i"),
-            p.sprintf("%.time%"),self._elt2sum(self.res[i]))
-        bitmapdump(p, s=slice_bytes, c=charcode, d=delimiter)
-
-PacketList.bitmapdump = _bitmapdump
-
-#if implementation - conf.commands.resister
-@config.conf.commands.register
-def bitmapdump(x, s=0, c=True, d=""):
-    """Draw psudo bitmap to xterm-256color"""
-    indexcolor = [16+i for i in range(217)]+\
-    [0,233,235,236,238,240,242,243,245,247,248,250,252,253,255,15]+\
-    [7,8,1,5,2,6]+[0 for i in range(16)]+[231]
-    x=str(x)
-    l = len(x)
-    p = sys.stdout.write
-    for i,ch in enumerate(x,1):
-        if s and i%s == 0:
-            print ""
-        p("\x1b[48;5;%02dm" % indexcolor[ord(ch)])
-        if c:
-            p(ord(ch) > 0x1F and ord(ch) < 0x7F and ch or ".")
-        else:
-            p(" ")
-        p("\x1b[0m")
-    print ""
 
 def _search_3way_handshake_of_tcp_stream(tcp_stream):
     """Search TCP 3 Way Handshake in TCP Stream.(returns first seen)"""
@@ -220,5 +182,4 @@ def follow_tcp_stream(pkt,pktlist,quick=False,resolv=False):
 
 if __name__ == "__main__":
     from scapy.main import interact
-    from scapy.all import sniff
     interact(mydict=locals(),mybanner="***SYA-KE scapy!***")
