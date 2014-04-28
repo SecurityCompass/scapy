@@ -14,6 +14,8 @@ from scapy.contrib.extra.eap.ttls import EAP_TTLS
 from scapy.contrib.extra.eap.tls import EAP_TLS
 from scapy.contrib.extra.eap.fast import EAP_Fast
 
+from scapy.contrib.extra.eap.expanded import EAP_Expanded
+
 eap_types = {
     1:"ID",
     2:"NOTIFICATION",
@@ -31,4 +33,4 @@ eap_types = {
     254:"EXPANDED EAP",
 }
 
-__all__ = ["PEAP","LEAP","EAP_TTLS","EAP_TLS","EAP_Fast"]
+__all__ = ["PEAP","LEAP","EAP_TTLS","EAP_TLS","EAP_Fast","EAP_Expanded"]
