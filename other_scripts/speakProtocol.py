@@ -3,10 +3,10 @@
 from scapy.all import *
 from scapy.utils import *
 
-from espeak import espeak
+from espeak import espeak#apt-get install espeak python-espeak
 
 load_contrib('http')
-a=1
+
 def f(p):
  l=p.lastlayer()
  if isinstance(l,Raw) or 'Option' in l.name:
@@ -14,8 +14,4 @@ def f(p):
  espeak.synth(l.name)
  return
 
-if a:
- sniff(
-iface='wlan0',lfilter=lambda p:not espeak.is_playing(),prn=f)
-else:
- sniff(offline="a.cap",lfilter=lambda p:not espeak.is_playing(),prn=f)
+sniff(lfilter=lambda p:not espeak.is_playing(),prn=f)

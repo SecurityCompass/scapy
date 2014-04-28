@@ -45,4 +45,6 @@ def bitmapdump(x, s=0, c=True, d=""):
 
 if __name__ == "__main__":
     from scapy.main import interact
+    from scapy.all import sniff
+    my=sniff(prn=bitmapdump)
     interact(mydict=locals(),mybanner="***SYA-KE scapy!***")
