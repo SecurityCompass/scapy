@@ -13,7 +13,7 @@ from config import conf
 from base_classes import BasePacket,BasePacketList
 from collections import defaultdict
 
-from utils import do_graph,hexdump,bitmapdump,make_table,make_lined_table,make_tex_table,get_temp_file
+from utils import do_graph,hexdump,make_table,make_lined_table,make_tex_table,get_temp_file
 
 import arch
 if arch.GNUPLOT:
@@ -209,20 +209,6 @@ lfilter: truth function to apply to each packet to decide whether it will be dis
                                 p.sprintf("%.time%"),
                                 self._elt2sum(self.res[i]))
             hexdump(p)
-
-    def bitmapdump(self, lfilter=None, banner=True, slice_bytes=0, charcode=False, delimiter=os.linesep):
-        """Same as nsummary(), except that packets are also gitmapdumped
-        lfilter: a truth function that decides whether a packet must be displayed
-        banner: whether a packet banner must be displayed or not"""
-        for i in range(len(self.res)):
-            p = self._elt2pkt(self.res[i])
-            if lfilter is not None and not lfilter(p):
-                continue
-            if banner:
-                print "%s %s %s" % (conf.color_theme.id(i,fmt="%04i"),
-                                p.sprintf("%.time%"),
-                                self._elt2sum(self.res[i]))
-            bitmapdump(p, s=slice_bytes, c=charcode, d=delimiter)
 
     def padding(self, lfilter=None):
         """Same as hexraw(), for Padding layer"""

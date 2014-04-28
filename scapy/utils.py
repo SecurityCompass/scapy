@@ -10,10 +10,6 @@ General utility functions.
 import os,sys,socket,types
 import random,time
 import gzip,zlib,cPickle
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 import re,struct,array
 import subprocess
 
@@ -66,23 +62,6 @@ def lhex(x):
         return "[%s]" % ", ".join(map(lhex, x))
     else:
         return x
-
-@conf.commands.register
-def bitmapdump(x, s=0, c=True, d=os.linesep):
-    """Draw psudo bitmap to xterm-256color"""
-    x=str(x)
-    l = len(x)
-    p = sys.stdout.write
-    for i,ch in enumerate(x):
-        p("\x1b[48;5;%2dm" % ord(ch))
-        if c:
-            p(ord(ch) > 0x1F and ord(ch) < 0x7F and ch or ".")
-        else:
-            p(" ")
-        p("\x1b[0m")
-        if i and s and i%s == 0:
-            print ""
-    p(d)
 
 @conf.commands.register
 def hexdump(x):
@@ -504,19 +483,11 @@ class RawPcapReader:
     def __init__(self, filename):
         self.filename = filename
         try:
-            f = open(filename, "rb")
-            self.isString = False
-        except:
-            f = StringIO(filename) # grant filename as raw string buffer
-            self.isString = True
-        #first2bytes = f.read(2)
-        #f.seek(0)
-        #if first2bytes == "\037\213":
-        #    self.f = gzip.GZipFile(fileobj=f, mode="rb")
-        #else:
-        #    self.f = f
-        self.f = f
-        magic = self.f.read(4)
+            self.f = gzip.open(filename,"rb")
+            magic = self.f.read(4)
+        except IOError:
+            self.f = open(filename,"rb")
+            magic = self.f.read(4)
         if magic == "\xa1\xb2\xc3\xd4": #big endian
             self.endian = ">"
         elif  magic == "\xd4\xc3\xb2\xa1": #little endian
@@ -584,8 +555,6 @@ class RawPcapReader:
         return self.read_packet(size)[0]
 
     def fileno(self):
-        if self.isString:
-            return 0
         return self.f.fileno()
 
     def close(self):
@@ -657,8 +626,6 @@ class RawPcapWriter:
         self.f = [open,gzip.open][gz](filename,append and "ab" or "wb", gz and 9 or bufsz)
         
     def fileno(self):
-        if self.isString:
-            return 0
         return self.f.fileno()
 
     def _write_header(self, pkt):
