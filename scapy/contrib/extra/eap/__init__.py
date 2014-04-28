@@ -25,7 +25,7 @@ eap_types = {
     17:"LEAP",
     18:"EAP-SIM",
     21:"EAP-TTLS",
-    23:"EAP-AKA"
+    23:"EAP-AKA",
     25:"PEAP",
     43:"EAP-FAST",
     254:"EXPANDED EAP",
