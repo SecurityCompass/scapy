@@ -5,7 +5,7 @@
 
 build
 
-*.hg*
+#*.hg*
 
 # Packages
 *.egg
