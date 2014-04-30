@@ -1,0 +1,6 @@
+[submodule "scapy/contrib/extra/scapy-http"]
+	path = scapy/contrib/extra/scapy-http
+	url = git@github.com:syakesaba/scapy-http.git
+[submodule "scapy/contrib/extra/scapy-icap"]
+	path = scapy/contrib/extra/scapy-icap
+	url = git@github.com:syakesaba/scapy-icap.git
