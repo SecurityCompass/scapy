@@ -43,7 +43,7 @@ def _search_4way_teardown_of_tcp_stream(tcp_stream):
             FA = False
             if A1[TCP].flags & 0x1:
                 FA = True
-                finackpackets2 = [A1]
+                ackpackets2 = [A1]
             else:
                 ackpackets2 = tcp_stream.filter(
                     lambda p: p[TCP].flags & 0x1 and \
