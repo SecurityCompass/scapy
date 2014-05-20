@@ -4,8 +4,7 @@
 import sys
 import os
 
-from scapy.all import config
-from scapy.all import PacketList
+from scapy.plist import PacketList
 
 def _bitmapdump(self, lfilter=None, banner=True, slice_bytes=0, charcode=True, delimiter=os.linesep):
     """Same as nsummary(), except that packets are also bitmapdumped
@@ -22,8 +21,7 @@ def _bitmapdump(self, lfilter=None, banner=True, slice_bytes=0, charcode=True, d
 
 PacketList.bitmapdump = _bitmapdump
 
-#if implementation - conf.commands.resister
-@config.conf.commands.register
+@conf.commands.register
 def bitmapdump(x, s=0, c=True, d=""):
     """Draw psudo bitmap to xterm-256color"""
     indexcolor = [16+i for i in range(217)]+\
