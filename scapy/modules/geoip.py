@@ -26,7 +26,7 @@ db = []
 for l in open("GeoIPCountryWhois.csv").readlines():
     s,e,c = l.split(",")[2:5]
     db.append((int(s[1:-1]),int(e[1:-1]),c[1:-1]))
-cPickle.dump(gzip.open("xxx","w"),db)
+cPickle.dump(db, gzip.open("xxx","w"))
 """
     def lazy_init(self):
         self.base = load_object(self.filename)
