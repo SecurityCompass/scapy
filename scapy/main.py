@@ -236,6 +236,7 @@ def interact(mydict=None,argv=None,mybanner=None,loglevel=20):
     
         readline.set_completer(ScapyCompleter().complete)
         readline.parse_and_bind("C-o: operate-and-get-next")
+        readline.parse_and_bind("bind ^I rl_complete")
         readline.parse_and_bind("tab: complete")
     
     
