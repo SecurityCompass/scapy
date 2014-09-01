@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+# load me using load_module
+# load_module("bzdump")
+
 import sys
 import os
 
@@ -28,8 +31,20 @@ for idx,rgb in enumerate(palette8bit):
 
 def _bzdump_list(self, x=256, b=8, lfilter=None, split=False, title=None, command=None):
     """
-    Same as nsummary(), except that packets are also bzdumped
-    lfilter: a function that decides whether a packet must be displayed
+    bzdump() to each packets.
+
+    @param x: width of an image
+    @type x: int
+    @param b: bit to eat per color
+    @type b: int
+    @param split: if True then split self each by RED line.
+    @type split: bool
+    @param title: Title of window.
+    @type title: str
+    @param command: default="display"
+    @type command: str
+    @param lfilter: a function that decides whether a packet must be displayed
+    @type lfilter: lambda
     """
     s = ""
     for i in range(len(self.res)):
@@ -38,7 +53,7 @@ def _bzdump_list(self, x=256, b=8, lfilter=None, split=False, title=None, comman
             continue
         p_s = str(p)
         s += p_s
-        if split and b == 8:
+        if split:
             if len(p_s) % x:
                 s += x*"\x05"# RED LINE
             else:
@@ -50,7 +65,19 @@ PacketList.bzdump = _bzdump_list
 
 @conf.commands.register
 def bzdump(s, x=256, b=8, title=None, command=None):
-    """Draw psudo bitmap to xterm-256color"""
+    """
+    BZEditor bitmap drawing.
+    @see https://sites.google.com/site/bzeditortama/
+
+    @param x: width of an image
+    @type x: int
+    @param b: bit to eat per color
+    @type b: int
+    @param title: Title of window.
+    @type title: str
+    @param command: default="display"
+    @type command: str
+    """
     s_size = len(s)
     y = s_size / x
     if s_size % x:
@@ -80,9 +107,3 @@ def bzdump(s, x=256, b=8, title=None, command=None):
         img.show(command)
     else:
         img.show(title="BZDUMP - %dBit Mode Bitmap" % b)
-
-if __name__ == "__main__":
-    from scapy.main import interact
-    from scapy.all import sniff
-    my=sniff(prn=bzdump)
-    interact(mydict=locals(),mybanner="***SYA-KE scapy!***")
