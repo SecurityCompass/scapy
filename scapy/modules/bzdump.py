@@ -99,11 +99,11 @@ def bzdump(s, x=256, b=8, title=None, command=None):
     elif b== 32:#32bit = 4bytes
         #TODO: pick last 3 or 2 or 1 bytes
         img.putdata([ tuple(map(ord,c4)) for c4 in split_str(s,4) if len(c4) == 4])
-    if title is None and command is None:
+    if title is not None and command is not None:
         img.show(title,command)
-    elif title is None:
+    elif title is not None:
         img.show(title)
-    elif command is None:
+    elif command is not None:
         img.show(command)
     else:
         img.show(title="BZDUMP - %dBit Mode Bitmap" % b)
