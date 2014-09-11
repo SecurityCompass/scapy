@@ -30,8 +30,7 @@ for idx,rgb in enumerate(palette8bit):
     palette_array8bit.extend( (r, g, b) )
 
 def _bzdump_list(self, x=256, b=8, lfilter=None, split=False, title=None, command=None):
-    """
-    bzdump() to each packets.
+    """bzdump() to each packets. (PIL required)
 
     @param x: width of an image
     @type x: int
@@ -65,8 +64,7 @@ PacketList.bzdump = _bzdump_list
 
 @conf.commands.register
 def bzdump(s, x=256, b=8, title=None, command=None):
-    """
-    BZEditor bitmap drawing.
+    """BZEditor bitmap drawing. (PIL required)
     @see https://sites.google.com/site/bzeditortama/
 
     @param x: width of an image
