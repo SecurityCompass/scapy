@@ -1,8 +1,8 @@
 scapy
 =====
 
-Scapy, the best tool for learning "Packet", is developed at <http://hg.secdev.org/scapy>.
-This repository will pull the commits from <http://hg.secdev.org/scapy>, 
+Scapy, the best tool for learning "Packet", is developed at <http://bb.secdev.org/scapy>.
+This repository will pull the commits from <http://bb.secdev.org/scapy>, 
 some files from scapy-community, my small files, third-party extra protocols, 
 and some scapy scripts.
 
