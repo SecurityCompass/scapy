@@ -21,7 +21,7 @@ def jsondump(p,filename=None):
 def dump_packet_as_json(p,filename=None):
     s = _dump_packet_as_str(p)
     if filename is not None:
-        json.dump(s, file(filename,"w"))
+        json.dump(s, file(filename,"wb"),ensure_ascii=False)
         return
     else:
         return s
@@ -41,7 +41,7 @@ def _dumps_json(p):
         p = p[0]
     layer = p.getlayer(i)
     while layer:
-        serialized.append((layer.name,layer.fields))
+        serialized.append((layer.__class__.__name__,layer.fields))
         i += 1
         layer = p.getlayer(i)
     return serialized
@@ -53,7 +53,7 @@ def jsonload(filename):
     @param filename: filename to load json PacketList
     @type filename: str
     """
-    p = json.load(file(filename,"r"))
+    p = json.load(file(filename,"rb"))
     return PacketList(jsonloads(p),name=filename)
 
 @conf.commands.register
@@ -72,7 +72,11 @@ def _loads_json(s):
     deserialized = None
     for i in range(len(s)):
         serialized = s[i]
-        layer = get_cls(serialized[0] ,None)()
+        layer = globals().get(serialized[0] ,None)
+        if layer is None:
+            print "Could not read class ",serialized[0]
+            continue
+        layer = layer()
         layer.fields = serialized[1]
         if deserialized is None:
             deserialized = layer
