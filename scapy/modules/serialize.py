@@ -22,7 +22,7 @@ def dump_packet_as_json_str(p,filename=None):
         json.dump(s, file(filename,"wb"),ensure_ascii=False)
         return
     else:
-        return json.dumps(s)
+        return json.dumps(s, ensure_ascii=False)
 
 def _dump_packet_as_str(p):
     if isinstance(p, PacketList):
@@ -91,7 +91,7 @@ class SerializeTest(unittest.TestCase):
 
     def test_dumps_json(self):
         expected_raw = [[["IP",{"src":"192.168.1.1"}],]]
-        expected = json.dumps(expected_raw)
+        expected = json.dumps(expected_raw, ensure_ascii=False)
         actual = IP(src="192.168.1.1").jsondump()
         self.assertEqual(expected, actual)
 
@@ -162,6 +162,15 @@ class SerializeTest(unittest.TestCase):
         self.assertEqual(tt1.res, tt2.res)
         self.assertIsInstance(tt1, PacketList)
         self.assertIsInstance(tt2, PacketList)
+
+    def test_dnsqr(self):
+        t1 = Ether()/IP()/DNS(opcode="QUERY", qd=DNSQR(qname='sip.cybercity.dk.', qtype="A", qclass="IN"))
+        t1_json = t1.jsondump()
+        json_loaded = json.loads(t1_json)[0]
+        t2 = _loads_json(json_loaded)
+        self.assertEqual(t1, t2)
+        self.assertIsInstance(t1, Packet)
+        self.assertIsInstance(t2, Packet)
 
 if __name__ == "__main__":
     unittest.main()
