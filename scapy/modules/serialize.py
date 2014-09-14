@@ -9,7 +9,8 @@ __author__ = "SYA-KE <syakesaba@gmail.com>"
 import json
 from scapy.all import *# for globals()
 
-def dump_packet_as_json(p,filename=None):
+@conf.commands.register
+def dump_packet_as_json_str(p,filename=None):
     """dump packet as json.
 
     @param p: Packet or PacketList
@@ -42,7 +43,8 @@ def _dumps_json(p):
         layer = p.getlayer(i)
     return serialized
 
-def jsonload(filename):
+@conf.commands.register
+def load_packets_from_json_file(filename):
     """ laod json file as PacketList
 
     @param filename: filename to load json PacketList
@@ -51,16 +53,17 @@ def jsonload(filename):
     f = file(filename,"rb")
     p = f.read()
     f.close()
-    return PacketList(jsonloads(p),name=filename)
+    return PacketList(load_packets_from_json_str(p),name=filename)
 
-def jsonloads(p):
+@conf.commands.register
+def load_packets_from_json_str(s):
     """ load json string as PacketList
 
     @param p: string to load json PacketList
     @type p: str
     """
-    json_loaded = json.loads(p)
-    return PacketList([_loads_json(pkt) for pkt in p])
+    json_loaded = json.loads(s)
+    return PacketList([_loads_json(pkt) for pkt in json_loaded])
 
 def _loads_json(s):
     deserialized = None
@@ -78,8 +81,8 @@ def _loads_json(s):
             deserialized = deserialized / layer
     return deserialized
 
-PacketList.jsondump = dump_packet_as_json
-Packet.jsondump = dump_packet_as_json
+PacketList.jsondump = dump_packet_as_json_str
+Packet.jsondump = dump_packet_as_json_str
 
 import unittest
 import os
@@ -106,8 +109,8 @@ class SerializeTest(unittest.TestCase):
         t2 = Ether()/IP(src="192.168.1.1")/TCP(dport=80,flags="S")
         tj1 = t1.jsondump()
         tj2 = t2.jsondump()
-        tt1 = jsonloads(tj1)
-        tt2 = jsonloads(tj2)
+        tt1 = load_packets_from_json_str(tj1)
+        tt2 = load_packets_from_json_str(tj2)
         self.assertEqual(tt1.res, tt2.res)
         self.assertIsInstance(tt1, PacketList)
         self.assertIsInstance(tt2, PacketList)
@@ -125,11 +128,13 @@ class SerializeTest(unittest.TestCase):
         ])
         tj1 = t1.jsondump()
         tj2 = t2.jsondump()
-        tt1 = jsonloads(tj1)
-        tt2 = jsonloads(tj2)
+        tt1 = load_packets_from_json_str(tj1)
+        tt2 = load_packets_from_json_str(tj2)
         self.assertEqual(tt1.res, tt2.res)
         self.assertIsInstance(tt1, PacketList)
         self.assertIsInstance(tt2, PacketList)
+        for i in range(3):
+            self.assertEqual(tt1[i], tt2[i])
 
     def test_file(self):
         FILE1 = "testSerialize1"
@@ -147,8 +152,8 @@ class SerializeTest(unittest.TestCase):
         try:
             tj1 = t1.jsondump(FILE1)
             tj2 = t2.jsondump(FILE2)
-            tt1 = jsonload(FILE1)
-            tt2 = jsonload(FILE2)
+            tt1 = load_packets_from_json_file(FILE1)
+            tt2 = load_packets_from_json_file(FILE2)
         except Exception as e:
             raise e
         finally:
