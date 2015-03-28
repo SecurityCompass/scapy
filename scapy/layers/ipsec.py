@@ -53,6 +53,11 @@ from scapy.layers.inet import IP, UDP
 from scapy.layers.inet6 import IPv6, IPv6ExtHdrHopByHop, IPv6ExtHdrDestOpt, \
     IPv6ExtHdrRouting
 
+if not hasattr(socket, 'IPPROTO_AH'):
+    # workaround like http://stackoverflow.com/questions/28754049/scapy-warning-cant-import-layer-inet-module-object-has-no-attribute-ipprot
+    socket.IPPROTO_AH = 51
+if not hasattr(socket, 'IPPROTO_ESP'):
+    socket.IPPROTO_ESP = 50
 
 #------------------------------------------------------------------------------
 class AH(Packet):
