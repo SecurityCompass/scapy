@@ -20,9 +20,6 @@ scapy.config.conf.use_dnet = 1
 from pcapdnet import *
 
 
-    
-
-
 ##################
 ## Routes stuff ##
 ##################
@@ -49,8 +46,9 @@ def read_routes():
         if not ok:
             if l.find("Destination") >= 0:
                 ok = 1
-                mtu_present = l.find("Mtu") >= 0
-                prio_present = l.find("Prio") >= 0
+                mtu_present = "Mtu" in l
+                prio_present = "Prio" in l
+                refs_present = "Refs" in l
             continue
         if not l:
             break
@@ -64,7 +62,7 @@ def read_routes():
         else:
             rt = l.split()
             dest,gw,flg = rt[:3]
-            netif = rt[5+mtu_present+prio_present]
+            netif = rt[4 + mtu_present + prio_present + refs_present]
         if flg.find("Lc") >= 0:
             continue                
         if dest == "default":
@@ -112,34 +110,63 @@ def read_routes():
 ### IPv6 ###
 ############
 
-def in6_getifaddr():
+def _in6_getifaddr(ifname):
+    """
+    Returns a list of IPv6 addresses configured on the interface ifname.
+    """
+
+    # Get the output of ifconfig
+    try:
+        f = os.popen("%s %s" % (conf.prog.ifconfig, ifname))
+    except OSError,msg:
+        log_interactive.warning("Failed to execute ifconfig.")
+        return []
+
+    # Iterate over lines and extract IPv6 addresses
+    ret = []
+    for line in f:
+        if "inet6" in line:
+            addr = line.rstrip().split(None, 2)[1] # The second element is the IPv6 address
+        else:
+            continue
+        if '%' in line: # Remove the interface identifier if present
+            addr = addr.split("%", 1)[0]
+
+        # Check if it is a valid IPv6 address
+        try:
+            socket.inet_pton(socket.AF_INET6, addr)
+        except:
+            continue
+
+        # Get the scope and keep the address
+        scope = scapy.utils6.in6_getscope(addr)
+        ret.append((addr, scope, ifname))
+
+    return ret
+
+def in6_getifaddr():    
     """
     Returns a list of 3-tuples of the form (addr, scope, iface) where
     'addr' is the address of scope 'scope' associated to the interface
-    'ifcace'.
+    'iface'.
 
     This is the list of all addresses of all interfaces available on
     the system.
     """
 
+    # List all network interfaces
+    try:
+	f = os.popen("%s -l" % conf.prog.ifconfig)
+    except OSError,msg:
+	log_interactive.warning("Failed to execute ifconfig.")
+	return []
+
+    # Get the list of network interfaces
+    splitted_line = f.readline().rstrip().split()
     ret = []
-    i = dnet.intf()
-    for int in i:
-        ifname = int['name']
-        v6 = []
-        if int.has_key('alias_addrs'):
-            v6 = int['alias_addrs']
-        for a in v6:
-            if a.type != dnet.ADDR_TYPE_IP6:
-                continue
-
-            xx = str(a).split('/')[0]
-            addr = scapy.utils6.in6_ptop(xx)
-
-            scope = scapy.utils6.in6_getscope(addr)
-
-            ret.append((xx, scope, ifname))
-    return ret
+    for i in splitted_line:
+	ret += _in6_getifaddr(i)
+    return ret	    
 
 def read_routes6():
     f = os.popen("netstat -rn -f inet6")
